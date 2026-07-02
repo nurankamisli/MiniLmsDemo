@@ -1,0 +1,240 @@
+﻿@model MiniLms.Models.Course
+
+@{
+    ViewData["Title"] = Model.Title + " - Ders Detayları";
+}
+
+<div class="container mt-4">
+    <!-- 1. ÜST ALAN: Breadcrumb ve Kurs Başlığı -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Course" asp-action="Index">Kurslar</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
+                </ol>
+            </nav>
+
+            <div class="p-5 bg-dark text-white rounded shadow-sm">
+                <h1 class="display-4 fw-bold">@Model.Title</h1>
+                <p class="lead mb-0">Kurs Kodu: <span class="badge bg-primary">@Model.CourseCode</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 2. SOL SÜTUN: Haftalık Ders Müfredatı (Accordion) -->
+        <div class="col-md-8">
+            <h3 class="mb-4">📚 Haftalık Ders Müfredatı</h3>
+
+            @if (Model.Lessons != null && Model.Lessons.Any())
+            {
+                <div class="accordion" id="lessonsAccordion">
+                    @foreach (var lesson in Model.Lessons.OrderBy(l => l.WeekNumber))
+                    {
+                        <div class="accordion-item mb-2 shadow-sm">
+                            <h2 class="accordion-header" id="heading-@lesson.Id">
+                                <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@lesson.Id" aria-expanded="false" aria-controls="collapse-@lesson.Id">
+                                    ⏱️ @lesson.WeekNumber. Hafta: @lesson.Title
+                                </button>
+                            </h2>
+                            <div id="collapse-@lesson.Id" class="accordion-collapse collapse" aria-labelledby="heading-@lesson.Id" data-bs-parent="#lessonsAccordion">
+                                <div class="accordion-body bg-light">
+
+                                    @* image_6c56e7.png hatasını çözen 'lesson.Contents' döngüsü *@
+                                    @if (lesson.Contents != null && lesson.Contents.Any())
+                                    {
+                                        foreach (var content in lesson.Contents.OrderBy(c => c.Order))
+                                        {
+                                            <div class="p-3 mb-2 bg-white rounded border-start border-primary border-3 shadow-sm">
+                                                <h6 class="fw-bold text-primary">@content.Title</h6>
+                                                <p class="mb-0 text-secondary" style="white-space: pre-line;">
+                                                    @(!string.IsNullOrEmpty(content.Body) ? content.Body : content.Text)
+                                                </p>
+                                                @if (!string.IsNullOrEmpty(content.ResourceUrl))
+                                                {
+                                                    <div class="mt-2">
+                                                        <a href="@content.ResourceUrl" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                                            🔗 Ek Kaynağı Görüntüle
+                                                        </a>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-0 small"><em>Bu haftaya ait detaylı içerik henüz yüklenmemiştir.</em></p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info shadow-sm">
+                    Bu kursa ait henüz haftalık ders içeriği eklenmemiştir.
+                </div>
+            }
+        </div>
+
+        <!-- 3. SAĞ SÜTUN: Kurs Bilgileri, Doküman Yükleme ve Listeleme -->
+        <div class="col-md-4">
+            <!-- Kart A: Kurs Hakkında -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white fw-bold">
+                    ℹ️ Kurs Hakkında
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-dark">@Model.Description</p>
+                    <hr />
+                    <div class="d-flex justify-content-between text-muted small">
+                        <span>Sistem Durumu:</span>
+                        <strong><span class="text-success">●</span> Aktif</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kart B: Doküman Yükleme Formu -->
+            <div class="card shadow-sm border-primary mb-4">
+                <div class="card-header bg-primary text-white fw-bold">
+                    📁 RAG İçin Doküman Yükle
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Yükleyeceğiniz PDF veya TXT dökümanları sistem tarafından okunarak yapay zeka RAG asistanının hafızasına (Qdrant) aktarılır.</p>
+
+                    <form asp-controller="Course" asp-action="UploadDocument" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="courseId" value="@Model.Id" />
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Dosya Seç (PDF, TXT):</label>
+                            <input type="file" name="file" class="form-control form-control-sm" required accept=".pdf,.txt" />
+                        </div>
+
+                        <button type="submit" class="btn btn-sm btn-success w-100">
+                            📤 Dokümanı Yükle & İşle
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Kart C: Yüklenen Dokümanların Listesi -->
+            <div class="card shadow-sm border-secondary mb-4">
+                <div class="card-header bg-secondary text-white fw-bold">
+                    📋 Derse Ait Kaynak Dokümanlar
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.Documents != null && Model.Documents.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var doc in Model.Documents)
+                            {
+                                <div class="list-group-item d-flex align-items-center justify-content-between p-3">
+                                    <div class="d-flex align-items-center" style="max-width: 75%;">
+                                        <span class="fs-4 me-2">📄</span>
+                                        <div class="text-truncate">
+                                            <h6 class="mb-0 text-dark fw-semibold text-truncate" title="@doc.FileName">@doc.FileName</h6>
+                                            <small class="text-muted">ID: @doc.Id</small>
+                                        </div>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(doc.FilePath))
+                                    {
+                                        <a href="~/uploads/@System.IO.Path.GetFileName(doc.FilePath)" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            👁️ Aç
+                                        </a>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-center text-muted small">
+                            <em>Bu kursa ait yüklenmiş bir kaynak doküman bulunmamaktadır.</em>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ALT ALAN: RAG Tabanlı Yapay Zeka Asistanı Paneli -->
+    <div class="row mt-4 mb-5">
+        <div class="col-md-12">
+            <div class="card border-primary shadow-sm">
+                <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0">🧠 Dersin Yapay Zeka Asistanı (RAG)</h5>
+                    <span class="badge bg-light text-primary">Gemini + Qdrant Active</span>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted small">Bu derse ait dökümanlar ve haftalık içerikler üzerinde anlamsal arama yapılarak doğrudan ders kaynaklarına dayalı güvenli cevap üretilir.</p>
+
+                    <!-- Asistan Yanıt Kutusu -->
+                    <div id="aiResponseBox" class="p-3 mb-3 bg-light border rounded d-none" style="max-height: 350px; overflow-y: auto;">
+                        <strong>🤖 Asistanın Cevabı:</strong>
+                        <p id="aiResponseText" class="mt-2 text-dark" style="white-space: pre-line; line-height: 1.6;"></p>
+                    </div>
+
+                    <!-- Soru Formu Girişi -->
+                    <div class="input-group input-group-lg">
+                        <input type="hidden" id="ragCourseId" value="@Model.Id" />
+                        <input type="text" id="studentQuestion" class="form-control" placeholder="Bu dersle ilgili merak ettiğiniz bir şeyi sorun... (Örn: 3. hafta konusu nedir?)" />
+                        <button class="btn btn-primary d-flex align-items-center" type="button" id="btnAskAi">
+                            <span id="btnText">Soruyu Sor</span>
+                            <span id="btnSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+        $("#btnAskAi").click(function () {
+        var questionText = $("#studentQuestion").val().trim();
+        var courseIdVal = $("#ragCourseId").val();
+
+        if (questionText === "") {
+        alert("Lütfen boş bir soru sormayın.");
+        return;
+        }
+
+        $("#btnAskAi").prop("disabled", true);
+        $("#btnText").text("Ders İçerikleri Taranıyor...");
+        $("#btnSpinner").removeClass("d-none");
+        $("#aiResponseBox").removeClass("d-none");
+        $("#aiResponseText").html("<em class='text-muted'>Vektör tabanlı veritabanı (Qdrant) taranıyor ve Gemini yapay zeka yanıtı hazırlanıyor... Lütfen bekleyin.</em>");
+
+        $.ajax({
+        url: '/Course/AskAi',
+        type: 'POST',
+        data: {
+        courseId: courseIdVal,
+        question: questionText
+        },
+        success: function (data) {
+        if (data.success) {
+        $("#aiResponseText").removeClass("text-danger").addClass("text-dark").text(data.response);
+        } else {
+        $("#aiResponseText").removeClass("text-dark").addClass("text-danger").text(data.response);
+        }
+        },
+        error: function () {
+        $("#aiResponseText").removeClass("text-dark").addClass("text-danger").text("Sistemle iletişim kurulurken teknik bir hata oluştu.");
+        },
+        complete: function () {
+        $("#btnAskAi").prop("disabled", false);
+        $("#btnText").text("Soruyu Sor");
+        $("#btnSpinner").addClass("d-none");
+        }
+        });
+        });
+        });
+    </script>
+}

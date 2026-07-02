@@ -1,0 +1,46 @@
+﻿@model MiniLms.Models.Course
+
+@{
+    ViewData["Title"] = "Dersi Sil";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Dersi Silmek İstediğinize Emin Misiniz?</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-4">Aşağıdaki ders sistemden kalıcı olarak silinecektir. Bu işlem geri alınamaz.</p>
+
+                    <dl class="row">
+                        <dt class="col-sm-4 fw-bold text-secondary">Ders Kodu:</dt>
+                        <dd class="col-sm-8 fw-bold text-danger">@Model.CourseCode</dd>
+
+                        <dt class="col-sm-4 fw-bold text-secondary">Ders Adı:</dt>
+                        <dd class="col-sm-8">@Model.Title</dd>
+
+                        <dt class="col-sm-4 fw-bold text-secondary">Kredi (AKTS):</dt>
+                        <dd class="col-sm-8">@Model.Credits AKTS</dd>
+                    </dl>
+
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-danger mt-3" role="alert">
+                            <i class="bi bi-x-circle-fill"></i> @ViewBag.ErrorMessage
+                        </div>
+                    }
+
+                    <form asp-action="Delete" method="post" class="mt-4">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Vazgeç</a>
+                            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Dersi Kalıcı Olarak Sil</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

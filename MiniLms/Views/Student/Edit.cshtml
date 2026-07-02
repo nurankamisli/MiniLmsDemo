@@ -1,0 +1,53 @@
+﻿@model MiniLms.ViewModels.StudentEditViewModel
+
+@{
+    ViewData["Title"] = "Öğrenci Güncelle";
+}
+
+<h2>Öğrenci Güncelle</h2>
+
+<form asp-action="Edit" method="post">
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <input asp-for="Id" type="hidden" />
+
+    <div class="mb-3">
+        <label asp-for="FirstName"></label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="LastName"></label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="StudentNumber"></label>
+        <input asp-for="StudentNumber" class="form-control" />
+        <span asp-validation-for="StudentNumber" class="text-danger"></span>
+    </div>
+
+    <button class="btn btn-primary">
+        Güncelle
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Vazgeç
+    </a>
+
+    @section Scripts{
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    }
+
+</form>
